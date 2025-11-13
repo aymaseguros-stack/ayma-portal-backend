@@ -27,7 +27,21 @@ app.add_middleware(
 
 # Incluir routers
 app.include_router(api_router, prefix="/api")
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
 
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint for Render.
+    Returns service status and basic info.
+    """
+    return {
+        "status": "healthy",
+        "service": "AYMA Portal API",
+        "version": "1.0.0",
+        "environment": "production"
+    }
 
 @app.on_event("startup")
 def on_startup():
