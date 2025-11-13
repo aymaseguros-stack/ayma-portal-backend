@@ -12,13 +12,10 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 pydantic==2.9.2
 pydantic-settings==2.6.1
+email-validator==2.2.0
 
 # Migraciones
 alembic==1.13.3
-
-# Background tasks (opcional - comentar si no usas)
-# redis==5.2.0
-# celery==5.4.0
 
 # Generación PDFs
 reportlab==4.2.5
