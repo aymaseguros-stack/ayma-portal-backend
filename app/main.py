@@ -1,92 +1,54 @@
-"""
-Aplicación principal FastAPI - Portal AYMA Advisors
-"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.core.database import init_db
-from app.api.v1 import api_router
+import os
 
-# Crear aplicación FastAPI
+# Imports de routers
+from app.api.v1 import auth, dashboard, polizas, vehiculos
+
+# Crear aplicación
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    description="API del Portal de Clientes AYMA Advisors",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    title="Portal AYMA Advisors API",
+    description="API para gestión de seguros y clientes",
+    version="1.0.0"
 )
 
 # Configurar CORS
+origins = [
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "https://portal-ayma.vercel.app",
+    "*"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Incluir routers
-app.include_router(api_router, prefix="/api")
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
+app.include_router(polizas.router, prefix="/api/v1/polizas", tags=["polizas"])
+app.include_router(vehiculos.router, prefix="/api/v1/vehiculos", tags=["vehiculos"])
 
-@app.get("/health")
-async def health_check():
-    """
-    Health check endpoint for Render.
-    Returns service status and basic info.
-    """
-    return {
-        "status": "healthy",
-        "service": "AYMA Portal API",
-        "version": "1.0.0",
-        "environment": "production"
-    }
-
-@app.on_event("startup")
-def on_startup():
-    """
-    Evento al iniciar la aplicación
-    """
-    # Inicializar base de datos (crear tablas si no existen)
-    init_db()
-    print(f"✅ Base de datos inicializada")
-    print(f"✅ {settings.PROJECT_NAME} v{settings.VERSION} iniciado")
-    print(f"✅ Ambiente: {settings.ENVIRONMENT}")
-    print(f"✅ Base de datos: {settings.DATABASE_URL.split('@')[-1] if '@' in settings.DATABASE_URL else settings.DATABASE_URL}")
-
-
+# Endpoint raíz
 @app.get("/")
-def root():
-    """
-    Endpoint raíz
-    """
+async def root():
     return {
         "message": "Portal AYMA Advisors API",
-        "version": settings.VERSION,
-        "environment": settings.ENVIRONMENT,
+        "version": "1.0.0",
+        "environment": os.getenv("ENVIRONMENT", "development"),
         "docs": "/docs",
         "health": "/health"
     }
 
-
+# Health check para Render
 @app.get("/health")
-def health_check():
-    """
-    Health check endpoint
-    """
+async def health_check():
     return {
         "status": "healthy",
-        "version": settings.VERSION,
-        "environment": settings.ENVIRONMENT
+        "service": "AYMA Portal API"
     }
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True
-    )
