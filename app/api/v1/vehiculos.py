@@ -9,7 +9,7 @@ from app.models import Cliente, Vehiculo, Poliza
 from app.schemas.vehiculo import VehiculoResponse, VehiculoResumen
 from app.api.dependencies import get_current_cliente
 
-router = APIRouter(prefix="/vehiculos", tags=["Vehículos"])
+router = APIRouter(tags=["Vehículos"])
 
 
 @router.get("/", response_model=List[VehiculoResumen])

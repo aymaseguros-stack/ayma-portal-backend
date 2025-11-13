@@ -11,7 +11,7 @@ from app.schemas.dashboard import DashboardResumen, ScoringResumen
 from app.services import scoring as scoring_service
 from app.api.dependencies import get_current_cliente
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+router = APIRouter(tags=["Dashboard"])
 
 
 @router.get("/", response_model=DashboardResumen)

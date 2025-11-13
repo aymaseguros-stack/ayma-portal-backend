@@ -10,7 +10,7 @@ from app.schemas.poliza import PolizaResponse, PolizaResumen, PolizaCreate
 from app.services import scoring as scoring_service
 from app.api.dependencies import get_current_cliente, require_admin
 
-router = APIRouter(prefix="/polizas", tags=["Pólizas"])
+router = APIRouter(tags=["Pólizas"])
 
 
 @router.get("/", response_model=List[PolizaResumen])
