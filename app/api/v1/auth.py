@@ -17,7 +17,7 @@ from app.services import scoring as scoring_service
 from app.api.dependencies import get_current_user
 from app.models import Usuario
 
-router = APIRouter(prefix="/auth", tags=["Autenticación"])
+router = APIRouter(tags=["auth"])
 
 
 @router.post("/login", response_model=LoginResponse)
