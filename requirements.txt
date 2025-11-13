@@ -1,0 +1,33 @@
+# FastAPI y servidor
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Base de datos
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+
+# Autenticación y seguridad
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Migraciones (opcional, para futuro)
+alembic==1.12.1
+
+# Redis (opcional, para cache)
+redis==5.0.1
+
+# Celery (opcional, para tareas asíncronas)
+celery==5.3.4
+
+# PDFs (para futuro)
+reportlab==4.0.7
+# weasyprint==60.1  # Descomentar si se usa
+
+# Emails (para futuro)
+# python-dotenv==1.0.0  # Ya incluido en pydantic-settings
+
+# Utils
+python-dateutil==2.8.2
