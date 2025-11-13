@@ -22,23 +22,24 @@ def create_default_users():
             print("📝 Creando usuario administrador...")
             admin_user = Usuario(
                 email="aymaseguros@hotmail.com",
-                hashed_password=get_password_hash("Admin123456789"),
-                nombre="Administrador",
-                apellido="AYMA",
+                password_hash=get_password_hash("Admin123456789"),
                 tipo_usuario="admin",
-                is_active=True
+                activo=True
             )
             db.add(admin_user)
             db.commit()
-            print("✅ Usuario administrador creado exitosamente")
+            db.refresh(admin_user)
+            print(f"✅ Usuario administrador creado: {admin_user.email}")
         else:
-            print("✅ Usuario administrador ya existe")
+            print(f"✅ Usuario administrador ya existe: {existing_admin.email}")
             
     except IntegrityError as e:
-        print(f"⚠️ Error al crear usuario: {e}")
+        print(f"⚠️ Error de integridad: {e}")
         db.rollback()
     except Exception as e:
         print(f"❌ Error inesperado: {e}")
+        import traceback
+        traceback.print_exc()
         db.rollback()
     finally:
         db.close()
