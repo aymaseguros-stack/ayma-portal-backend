@@ -4,6 +4,8 @@ import os
 
 # Imports de routers
 from app.api.v1 import auth, dashboard, polizas, vehiculos
+from app.core.database import init_db
+from app.core.init_users import create_default_users
 
 # Crear aplicación
 app = FastAPI(
@@ -15,7 +17,7 @@ app = FastAPI(
 # Configurar CORS
 origins = [
     "http://localhost:3000",
-    "http://localhost:8000",
+    "http://localhost:5173",
     "https://portal-ayma.vercel.app",
     "*"
 ]
@@ -33,6 +35,20 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
 app.include_router(polizas.router, prefix="/api/v1/polizas", tags=["polizas"])
 app.include_router(vehiculos.router, prefix="/api/v1/vehiculos", tags=["vehiculos"])
+
+# Evento de startup
+@app.on_event("startup")
+def on_startup():
+    """Inicializar base de datos y usuarios al iniciar"""
+    print("🚀 Iniciando Portal AYMA Advisors API...")
+    
+    # Inicializar tablas
+    init_db()
+    print("✅ Base de datos inicializada")
+    
+    # Crear usuarios por defecto
+    create_default_users()
+    print("✅ Usuarios inicializados")
 
 # Endpoint raíz
 @app.get("/")
