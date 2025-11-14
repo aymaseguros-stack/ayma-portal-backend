@@ -1,45 +1,79 @@
 """
 Inicialización de usuarios por defecto
 """
+from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
-from app.models.usuario import Usuario
+from app.models.usuario import Usuario, TipoUsuario
 from app.core.security import get_password_hash
-from sqlalchemy.exc import IntegrityError
+
 
 def create_default_users():
-    """
-    Crea usuarios por defecto si no existen
-    """
+    """Crea usuarios por defecto si no existen"""
     db = SessionLocal()
     
     try:
-        # Verificar si existe el usuario admin
-        existing_admin = db.query(Usuario).filter(
-            Usuario.email == "aymaseguros@hotmail.com"
-        ).first()
+        # Usuario ADMIN
+        admin_email = "aymaseguros@hotmail.com"
+        admin = db.query(Usuario).filter(Usuario.email == admin_email).first()
         
-        if not existing_admin:
-            print("📝 Creando usuario administrador...")
-            admin_user = Usuario(
-                email="aymaseguros@hotmail.com",
+        if not admin:
+            admin = Usuario(
+                email=admin_email,
                 password_hash=get_password_hash("Admin123456789"),
-                tipo_usuario="admin",
+                tipo_usuario=TipoUsuario.ADMIN,
                 activo=True
             )
-            db.add(admin_user)
-            db.commit()
-            db.refresh(admin_user)
-            print(f"✅ Usuario administrador creado: {admin_user.email}")
+            db.add(admin)
+            print(f"✅ Usuario ADMIN creado: {admin_email}")
         else:
-            print(f"✅ Usuario administrador ya existe: {existing_admin.email}")
-            
-    except IntegrityError as e:
-        print(f"⚠️ Error de integridad: {e}")
-        db.rollback()
+            # Actualizar si ya existe pero sin tipo_usuario
+            admin.tipo_usuario = TipoUsuario.ADMIN
+            print(f"✅ Usuario ADMIN actualizado: {admin_email}")
+        
+        # Usuario EMPLEADO
+        empleado_email = "empleado@aymaseguros.com"
+        empleado = db.query(Usuario).filter(Usuario.email == empleado_email).first()
+        
+        if not empleado:
+            empleado = Usuario(
+                email=empleado_email,
+                password_hash=get_password_hash("Empleado123"),
+                tipo_usuario=TipoUsuario.EMPLEADO,
+                activo=True
+            )
+            db.add(empleado)
+            print(f"✅ Usuario EMPLEADO creado: {empleado_email}")
+        
+        # Usuario CLIENTE
+        cliente_email = "cliente@ejemplo.com"
+        cliente = db.query(Usuario).filter(Usuario.email == cliente_email).first()
+        
+        if not cliente:
+            cliente = Usuario(
+                email=cliente_email,
+                password_hash=get_password_hash("Cliente123"),
+                tipo_usuario=TipoUsuario.CLIENTE,
+                activo=True
+            )
+            db.add(cliente)
+            print(f"✅ Usuario CLIENTE creado: {cliente_email}")
+        
+        db.commit()
+        
+        print("\n" + "="*50)
+        print("📋 USUARIOS DE PRUEBA:")
+        print("="*50)
+        print(f"🔑 ADMIN: aymaseguros@hotmail.com / Admin123456789")
+        print(f"👔 EMPLEADO: empleado@aymaseguros.com / Empleado123")
+        print(f"👤 CLIENTE: cliente@ejemplo.com / Cliente123")
+        print("="*50 + "\n")
+        
     except Exception as e:
-        print(f"❌ Error inesperado: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Error creando usuarios: {e}")
         db.rollback()
     finally:
         db.close()
+
+
+if __name__ == "__main__":
+    create_default_users()

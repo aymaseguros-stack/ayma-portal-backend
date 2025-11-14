@@ -1,57 +1,48 @@
 """
 Schemas de Autenticación
 """
-from typing import Optional
 from pydantic import BaseModel, EmailStr
+from typing import Optional
+
+
+class Token(BaseModel):
+    """Schema de respuesta del token"""
+    access_token: str
+    token_type: str = "bearer"
+    email: str
+    tipo_usuario: str
+
+
+class TokenData(BaseModel):
+    """Schema de datos del token"""
+    email: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
-    """Schema para login"""
+    """Schema de request de login"""
     email: EmailStr
     password: str
 
 
 class LoginResponse(BaseModel):
-    """Schema para respuesta de login"""
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    user: dict
-
-
-class TokenRefreshRequest(BaseModel):
-    """Schema para refresh token"""
-    refresh_token: str
-
-
-class TokenRefreshResponse(BaseModel):
-    """Schema para respuesta de refresh"""
+    """Schema de respuesta de login"""
     access_token: str
     token_type: str = "bearer"
+    email: str
+    tipo_usuario: str  # ← NUEVO
 
 
-class UsuarioBase(BaseModel):
-    """Base para usuario"""
-    email: EmailStr
-    tipo_usuario: str  # 'cliente', 'agente', 'admin'
-
-
-class UsuarioCreate(UsuarioBase):
-    """Schema para crear usuario"""
-    password: str
-
-
-class UsuarioResponse(UsuarioBase):
-    """Schema para respuesta de usuario"""
-    id: str
-    activo: bool
-    fecha_creacion: Optional[str] = None
-    
-    class Config:
-        from_attributes = True
-
-
-class ChangePasswordRequest(BaseModel):
+class PasswordChangeRequest(BaseModel):
     """Schema para cambiar contraseña"""
     old_password: str
     new_password: str
+
+
+class UserResponse(BaseModel):
+    """Schema de respuesta de usuario"""
+    email: str
+    tipo_usuario: str
+    activo: bool
+    
+    class Config:
+        from_attributes = True
