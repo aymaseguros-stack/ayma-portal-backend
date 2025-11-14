@@ -1,16 +1,14 @@
 """
-Dependencies para endpoints - Autenticación y autorización
+Dependencies y middleware de autenticación
 """
-from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from jose import jwt, JWTError
 from app.core.database import get_db
-from app.core.security import decode_token
-from app.models import Usuario, Cliente
-from app.services import auth as auth_service
+from app.models.usuario import Usuario
+from app.core.config import settings
 
-# Security scheme
 security = HTTPBearer()
 
 
@@ -18,82 +16,31 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> Usuario:
-    """
-    Obtener usuario actual desde el token JWT
-    """
-    token = credentials.credentials
+    """Obtiene el usuario actual desde el token JWT"""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="No se pudo validar las credenciales",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     
-    # Decodificar token
-    payload = decode_token(token)
-    if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado"
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(
+            token, 
+            settings.SECRET_KEY, 
+            algorithms=[settings.ALGORITHM]
         )
+        email: str = payload.get("sub")
+        
+        if email is None:
+            raise credentials_exception
+            
+    except JWTError:
+        raise credentials_exception
     
-    # Verificar tipo de token
-    if payload.get("type") != "access":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Tipo de token inválido"
-        )
+    user = db.query(Usuario).filter(Usuario.email == email).first()
     
-    # Obtener usuario
-    email = payload.get("sub")
-    if not email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido"
-        )
+    if user is None or not user.activo:
+        raise credentials_exception
     
-    usuario = auth_service.get_user_by_email(db, email)
-    if not usuario:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario no encontrado"
-        )
-    
-    if not usuario.activo:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario inactivo"
-        )
-    
-    return usuario
-
-
-def get_current_cliente(
-    usuario: Usuario = Depends(get_current_user),
-    db: Session = Depends(get_db)
-) -> Cliente:
-    """
-    Obtener cliente actual (solo para usuarios tipo 'cliente')
-    """
-    if usuario.tipo_usuario != "cliente":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acceso solo para clientes"
-        )
-    
-    cliente = auth_service.get_cliente_by_usuario_id(db, usuario.id)
-    if not cliente:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Perfil de cliente no encontrado"
-        )
-    
-    return cliente
-
-
-def require_admin(
-    usuario: Usuario = Depends(get_current_user)
-) -> Usuario:
-    """
-    Requerir que el usuario sea admin
-    """
-    if usuario.tipo_usuario != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acceso solo para administradores"
-        )
-    return usuario
+    return user
