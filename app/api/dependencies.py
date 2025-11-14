@@ -6,7 +6,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from app.core.database import get_db
-from app.models.usuario import Usuario
+from app.models.usuario import Usuario, TipoUsuario
 from app.core.config import settings
 
 security = HTTPBearer()
@@ -44,3 +44,39 @@ def get_current_user(
         raise credentials_exception
     
     return user
+
+
+def get_current_cliente(
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Dependency para obtener cliente actual
+    Por ahora solo retorna el usuario (sin modelo Cliente separado)
+    """
+    # TODO: Cuando tengamos modelo Cliente, buscarlo aquí
+    return current_user
+
+
+def require_admin(
+    current_user: Usuario = Depends(get_current_user)
+) -> Usuario:
+    """Requiere que el usuario sea administrador"""
+    if current_user.tipo_usuario != TipoUsuario.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tiene permisos de administrador"
+        )
+    return current_user
+
+
+def require_empleado(
+    current_user: Usuario = Depends(get_current_user)
+) -> Usuario:
+    """Requiere que el usuario sea empleado o admin"""
+    if current_user.tipo_usuario not in [TipoUsuario.ADMIN, TipoUsuario.EMPLEADO]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Requiere permisos de empleado"
+        )
+    return current_user
