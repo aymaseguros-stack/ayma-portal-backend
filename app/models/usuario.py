@@ -4,6 +4,7 @@ Modelo de Usuario
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Boolean, DateTime, Enum as SQLEnum
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 import enum
 
@@ -21,7 +22,7 @@ class Usuario(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     
-    # NUEVO: Tipo de usuario
+    # Tipo de usuario
     tipo_usuario = Column(SQLEnum(TipoUsuario), nullable=False, default=TipoUsuario.CLIENTE)
     
     # Estado
@@ -30,6 +31,9 @@ class Usuario(Base):
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relación con Cliente (opcional - solo si tipo_usuario es CLIENTE)
+    # cliente = relationship("Cliente", back_populates="usuario", uselist=False)
     
     def __repr__(self):
         return f"<Usuario {self.email} ({self.tipo_usuario})>"
