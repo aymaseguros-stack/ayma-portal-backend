@@ -10,10 +10,10 @@ from .dashboard import router as dashboard_router
 # Router principal para v1
 api_router = APIRouter(prefix="/v1")
 
-# Incluir todos los routers
-api_router.include_router(auth_router)
-api_router.include_router(polizas_router)
-api_router.include_router(vehiculos_router)
-api_router.include_router(dashboard_router)
+# Incluir todos los routers CON sus prefixes
+api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
+api_router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
+api_router.include_router(polizas_router, prefix="/polizas", tags=["polizas"])
+api_router.include_router(vehiculos_router, prefix="/vehiculos", tags=["vehiculos"])
 
 __all__ = ["api_router"]
