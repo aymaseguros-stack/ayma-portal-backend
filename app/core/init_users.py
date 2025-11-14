@@ -20,14 +20,13 @@ def create_default_users():
             admin = Usuario(
                 email=admin_email,
                 password_hash=get_password_hash("Admin123456789"),
-                tipo_usuario=TipoUsuario.ADMIN,
+                tipo_usuario=TipoUsuario.ADMIN,  # ← Usar ENUM
                 activo=True
             )
             db.add(admin)
             print(f"✅ Usuario ADMIN creado: {admin_email}")
         else:
-            # Actualizar si ya existe pero sin tipo_usuario
-            admin.tipo_usuario = TipoUsuario.ADMIN
+            admin.tipo_usuario = TipoUsuario.ADMIN  # ← Usar ENUM
             print(f"✅ Usuario ADMIN actualizado: {admin_email}")
         
         # Usuario EMPLEADO
@@ -38,7 +37,7 @@ def create_default_users():
             empleado = Usuario(
                 email=empleado_email,
                 password_hash=get_password_hash("Empleado123"),
-                tipo_usuario=TipoUsuario.EMPLEADO,
+                tipo_usuario=TipoUsuario.EMPLEADO,  # ← Usar ENUM
                 activo=True
             )
             db.add(empleado)
@@ -52,7 +51,7 @@ def create_default_users():
             cliente = Usuario(
                 email=cliente_email,
                 password_hash=get_password_hash("Cliente123"),
-                tipo_usuario=TipoUsuario.CLIENTE,
+                tipo_usuario=TipoUsuario.CLIENTE,  # ← Usar ENUM
                 activo=True
             )
             db.add(cliente)
