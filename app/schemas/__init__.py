@@ -1,69 +1,44 @@
 """
-Schemas package - Pydantic schemas para validación
+Schemas del proyecto
 """
-from .auth import (
+from app.schemas.auth import (
+    Token,
+    TokenData,
     LoginRequest,
     LoginResponse,
-    TokenRefreshRequest,
-    TokenRefreshResponse,
-    UsuarioCreate,
-    UsuarioResponse,
-    ChangePasswordRequest
+    PasswordChangeRequest,
+    UserResponse
 )
-from .cliente import (
-    ClienteCreate,
-    ClienteUpdate,
-    ClienteResponse,
-    ClienteResumen
+from app.schemas.dashboard import (
+    DashboardResumen,
+    ScoringResumen
 )
-from .vehiculo import (
-    VehiculoCreate,
-    VehiculoUpdate,
+from app.schemas.poliza import (
+    PolizaResponse,
+    PolizaResumen,
+    PolizaCreate
+)
+from app.schemas.vehiculo import (
     VehiculoResponse,
     VehiculoResumen
-)
-from .poliza import (
-    PolizaCreate,
-    PolizaUpdate,
-    PolizaResponse,
-    PolizaResumen
-)
-from .dashboard import (
-    DashboardResumen,
-    ActividadComercialCreate,
-    ActividadComercialResponse,
-    ScoringResumen,
-    EstadisticasPortal
 )
 
 __all__ = [
     # Auth
+    "Token",
+    "TokenData", 
     "LoginRequest",
     "LoginResponse",
-    "TokenRefreshRequest",
-    "TokenRefreshResponse",
-    "UsuarioCreate",
-    "UsuarioResponse",
-    "ChangePasswordRequest",
-    # Cliente
-    "ClienteCreate",
-    "ClienteUpdate",
-    "ClienteResponse",
-    "ClienteResumen",
-    # Vehículo
-    "VehiculoCreate",
-    "VehiculoUpdate",
-    "VehiculoResponse",
-    "VehiculoResumen",
-    # Póliza
-    "PolizaCreate",
-    "PolizaUpdate",
-    "PolizaResponse",
-    "PolizaResumen",
+    "PasswordChangeRequest",
+    "UserResponse",
     # Dashboard
     "DashboardResumen",
-    "ActividadComercialCreate",
-    "ActividadComercialResponse",
     "ScoringResumen",
-    "EstadisticasPortal",
+    # Poliza
+    "PolizaResponse",
+    "PolizaResumen",
+    "PolizaCreate",
+    # Vehiculo
+    "VehiculoResponse",
+    "VehiculoResumen"
 ]
