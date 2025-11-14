@@ -1,8 +1,7 @@
 """
-Services package - Lógica de negocio
+Services package
 """
-from . import auth
+# from . import auth  # ← COMENTADO temporalmente
 from . import scoring
-from . import pdf
 
-__all__ = ["auth", "scoring", "pdf"]
+__all__ = ["scoring"]
