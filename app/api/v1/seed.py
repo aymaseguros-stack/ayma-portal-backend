@@ -59,32 +59,34 @@ def seed_data(secret: str):
         else:
             cliente = cliente_existente
         
-        # Crear vehículos
+        # Crear vehículos (usando "dominio" no "patente")
         vehiculos = []
-        if not db.query(Vehiculo).filter(Vehiculo.patente == "ABC123").first():
+        if not db.query(Vehiculo).filter(Vehiculo.dominio == "ABC123").first():
             veh1 = Vehiculo(
                 cliente_id=cliente.id,
-                patente="ABC123",
+                dominio="ABC123",
+                tipo_vehiculo="auto",
                 marca="Toyota",
                 modelo="Corolla",
                 anio=2020,
-                tipo="sedan",
-                motor="1.8",
-                chasis="JTDBT123400012345"
+                uso="particular",
+                numero_motor="1234567890",
+                numero_chasis="JTDBT123400012345"
             )
             db.add(veh1)
             vehiculos.append(veh1)
         
-        if not db.query(Vehiculo).filter(Vehiculo.patente == "XYZ789").first():
+        if not db.query(Vehiculo).filter(Vehiculo.dominio == "XYZ789").first():
             veh2 = Vehiculo(
                 cliente_id=cliente.id,
-                patente="XYZ789",
+                dominio="XYZ789",
+                tipo_vehiculo="auto",
                 marca="Ford",
                 modelo="Focus",
                 anio=2019,
-                tipo="sedan",
-                motor="2.0",
-                chasis="1FADP3K20HL123456"
+                uso="particular",
+                numero_motor="0987654321",
+                numero_chasis="1FADP3K20HL123456"
             )
             db.add(veh2)
             vehiculos.append(veh2)
