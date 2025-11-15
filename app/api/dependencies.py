@@ -1,13 +1,13 @@
 """
-Dependencies y middleware de autenticación
+Dependencias compartidas para endpoints
 """
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from jose import jwt, JWTError
 from app.core.database import get_db
-from app.models.usuario import Usuario, TipoUsuario
-from app.core.config import settings
+from app.core.security import decode_access_token
+from app.models.usuario import Usuario
+from app.models.cliente import Cliente
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 security = HTTPBearer()
 
@@ -16,67 +16,49 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> Usuario:
-    """Obtiene el usuario actual desde el token JWT"""
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="No se pudo validar las credenciales",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    """
+    Obtener usuario actual desde el token JWT
+    """
+    token = credentials.credentials
+    payload = decode_access_token(token)
     
-    try:
-        token = credentials.credentials
-        payload = jwt.decode(
-            token, 
-            settings.SECRET_KEY, 
-            algorithms=[settings.ALGORITHM]
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido o expirado"
         )
-        email: str = payload.get("sub")
-        
-        if email is None:
-            raise credentials_exception
-            
-    except JWTError:
-        raise credentials_exception
     
-    user = db.query(Usuario).filter(Usuario.email == email).first()
+    email = payload.get("sub")
+    if email is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido"
+        )
     
-    if user is None or not user.activo:
-        raise credentials_exception
+    usuario = db.query(Usuario).filter(Usuario.email == email).first()
+    if usuario is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuario no encontrado"
+        )
     
-    return user
+    return usuario
 
 
 def get_current_cliente(
-    current_user: Usuario = Depends(get_current_user),
+    usuario: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Cliente:
     """
-    Dependency para obtener cliente actual
-    Por ahora solo retorna el usuario (sin modelo Cliente separado)
+    Obtener el perfil de Cliente asociado al usuario actual
     """
-    # TODO: Cuando tengamos modelo Cliente, buscarlo aquí
-    return current_user
-
-
-def require_admin(
-    current_user: Usuario = Depends(get_current_user)
-) -> Usuario:
-    """Requiere que el usuario sea administrador"""
-    if current_user.tipo_usuario != TipoUsuario.ADMIN:
+    # Buscar el Cliente asociado al usuario
+    cliente = db.query(Cliente).filter(Cliente.usuario_id == usuario.id).first()
+    
+    if cliente is None:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tiene permisos de administrador"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se encontró perfil de cliente para este usuario"
         )
-    return current_user
-
-
-def require_empleado(
-    current_user: Usuario = Depends(get_current_user)
-) -> Usuario:
-    """Requiere que el usuario sea empleado o admin"""
-    if current_user.tipo_usuario not in [TipoUsuario.ADMIN, TipoUsuario.EMPLEADO]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Requiere permisos de empleado"
-        )
-    return current_user
+    
+    return cliente
