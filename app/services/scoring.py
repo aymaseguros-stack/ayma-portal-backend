@@ -48,10 +48,10 @@ def registrar_actividad(
     
     db.add(actividad)
     
-    # Actualizar score del cliente
+    # Actualizar score del cliente (CORREGIDO: scoring_comercial)
     cliente = db.query(Cliente).filter(Cliente.id == cliente_id).first()
     if cliente:
-        cliente.score_comercial += int(puntos)
+        cliente.scoring_comercial = (cliente.scoring_comercial or 0) + int(puntos)
     
     db.commit()
     db.refresh(actividad)
@@ -86,7 +86,7 @@ def obtener_score_cliente(db: Session, cliente_id: str) -> dict:
     )
     
     return {
-        'total_puntos': cliente.score_comercial,
+        'total_puntos': cliente.scoring_comercial or 0,  # CORREGIDO
         'puntos_dia': puntos_hoy,
         'puntos_semana': puntos_semana,
         'objetivo_diario': settings.SCORING_OBJETIVO_DIARIO,
@@ -118,15 +118,15 @@ def obtener_estadisticas_scoring(db: Session) -> dict:
     """
     Obtener estadísticas generales de scoring
     """
-    # Total de puntos por todos los clientes
-    total_puntos = db.query(func.sum(Cliente.score_comercial)).scalar() or 0
+    # Total de puntos por todos los clientes (CORREGIDO)
+    total_puntos = db.query(func.sum(Cliente.scoring_comercial)).scalar() or 0
     
-    # Promedio de puntos
-    promedio_puntos = db.query(func.avg(Cliente.score_comercial)).scalar() or 0
+    # Promedio de puntos (CORREGIDO)
+    promedio_puntos = db.query(func.avg(Cliente.scoring_comercial)).scalar() or 0
     
-    # Cliente con más puntos
+    # Cliente con más puntos (CORREGIDO)
     top_cliente = db.query(Cliente).order_by(
-        Cliente.score_comercial.desc()
+        Cliente.scoring_comercial.desc()
     ).first()
     
     # Actividades del día
@@ -138,7 +138,7 @@ def obtener_estadisticas_scoring(db: Session) -> dict:
     return {
         'total_puntos': total_puntos,
         'promedio_puntos': round(float(promedio_puntos), 2),
-        'top_cliente': top_cliente.nombre_completo if top_cliente else None,
-        'top_cliente_puntos': top_cliente.score_comercial if top_cliente else 0,
+        'top_cliente': f"{top_cliente.nombre} {top_cliente.apellido}" if top_cliente else None,
+        'top_cliente_puntos': top_cliente.scoring_comercial if top_cliente else 0,  # CORREGIDO
         'actividades_hoy': actividades_hoy
     }
