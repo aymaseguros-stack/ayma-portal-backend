@@ -3,7 +3,6 @@ Endpoints de Dashboard
 """
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from datetime import datetime, timedelta
 from app.core.database import get_db
 from app.models import Cliente, Poliza, Vehiculo, ActividadComercial
@@ -22,14 +21,14 @@ def obtener_dashboard(
     """
     Obtener resumen completo del dashboard para el cliente
     """
-    # Información del cliente
+    # Información del cliente (usando nombres correctos)
     cliente_info = {
         "id": cliente.id,
-        "nombre_completo": cliente.nombre_completo,
+        "nombre_completo": f"{cliente.nombre} {cliente.apellido or ''}".strip(),
         "documento": f"{cliente.tipo_documento} {cliente.numero_documento}",
-        "email": cliente.email_contacto,
-        "celular": cliente.celular,
-        "score_comercial": cliente.score_comercial
+        "email": cliente.email,
+        "celular": cliente.telefono or "",
+        "score_comercial": cliente.scoring_comercial or 0
     }
     
     # Contar pólizas
@@ -62,7 +61,7 @@ def obtener_dashboard(
             "compania": p.compania,
             "tipo_cobertura": p.tipo_cobertura,
             "fecha_vencimiento": p.fecha_vencimiento.isoformat(),
-            "dias_para_vencimiento": p.dias_para_vencimiento
+            "dias_para_vencimiento": (p.fecha_vencimiento - datetime.now().date()).days
         }
         for p in proximas_renovaciones
     ]
@@ -78,7 +77,7 @@ def obtener_dashboard(
         polizas_vigentes=polizas_vigentes,
         cantidad_vehiculos=total_vehiculos,
         proximas_renovaciones=renovaciones_info,
-        score_comercial=cliente.score_comercial,
+        score_comercial=cliente.scoring_comercial or 0,
         ultima_actividad=ultima_actividad.created_at if ultima_actividad else None
     )
 
