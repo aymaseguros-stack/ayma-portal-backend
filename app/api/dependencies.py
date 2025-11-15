@@ -4,7 +4,7 @@ Dependencias compartidas para endpoints
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.security import decode_access_token
+from app.core.security import decode_token
 from app.models.usuario import Usuario
 from app.models.cliente import Cliente
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -20,7 +20,7 @@ def get_current_user(
     Obtener usuario actual desde el token JWT
     """
     token = credentials.credentials
-    payload = decode_access_token(token)
+    payload = decode_token(token)
     
     if payload is None:
         raise HTTPException(
@@ -62,3 +62,17 @@ def get_current_cliente(
         )
     
     return cliente
+
+
+def require_admin(
+    usuario: Usuario = Depends(get_current_user)
+) -> Usuario:
+    """
+    Verificar que el usuario actual es administrador
+    """
+    if usuario.tipo_usuario != "administrador":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tiene permisos de administrador"
+        )
+    return usuario
