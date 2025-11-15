@@ -9,6 +9,7 @@ from app.models.poliza import Poliza
 from app.models.vehiculo import Vehiculo
 from app.models.actividad import ActividadComercial
 from datetime import datetime, timedelta, date
+from decimal import Decimal
 
 router = APIRouter(tags=["seed"])
 
@@ -61,7 +62,8 @@ def seed_data(secret: str):
         
         # Crear vehículos
         vehiculos = []
-        if not db.query(Vehiculo).filter(Vehiculo.dominio == "ABC123").first():
+        veh1_existente = db.query(Vehiculo).filter(Vehiculo.dominio == "ABC123").first()
+        if not veh1_existente:
             veh1 = Vehiculo(
                 cliente_id=cliente.id,
                 dominio="ABC123",
@@ -77,10 +79,10 @@ def seed_data(secret: str):
             db.flush()
             vehiculos.append(veh1)
         else:
-            veh1 = db.query(Vehiculo).filter(Vehiculo.dominio == "ABC123").first()
-            vehiculos.append(veh1)
+            vehiculos.append(veh1_existente)
         
-        if not db.query(Vehiculo).filter(Vehiculo.dominio == "XYZ789").first():
+        veh2_existente = db.query(Vehiculo).filter(Vehiculo.dominio == "XYZ789").first()
+        if not veh2_existente:
             veh2 = Vehiculo(
                 cliente_id=cliente.id,
                 dominio="XYZ789",
@@ -96,10 +98,9 @@ def seed_data(secret: str):
             db.flush()
             vehiculos.append(veh2)
         else:
-            veh2 = db.query(Vehiculo).filter(Vehiculo.dominio == "XYZ789").first()
-
+            vehiculos.append(veh2_existente)
         
-        # Crear pólizas (usando nombres correctos)
+        # Crear pólizas
         if not db.query(Poliza).filter(Poliza.numero_poliza == "POL-2024-001").first():
             pol1 = Poliza(
                 cliente_id=cliente.id,
@@ -110,7 +111,7 @@ def seed_data(secret: str):
                 tipo_cobertura="terceros_completo",
                 fecha_inicio=date.today(),
                 fecha_vencimiento=date.today() + timedelta(days=365),
-                premio_total=25000.0,
+                premio_total=Decimal('25000.0'),
                 estado="vigente"
             )
             db.add(pol1)
@@ -125,7 +126,7 @@ def seed_data(secret: str):
                 tipo_cobertura="todo_riesgo",
                 fecha_inicio=date.today(),
                 fecha_vencimiento=date.today() + timedelta(days=365),
-                premio_total=30000.0,
+                premio_total=Decimal('30000.0'),
                 estado="vigente"
             )
             db.add(pol2)
@@ -139,32 +140,34 @@ def seed_data(secret: str):
                 tipo_cobertura="incendio_robo",
                 fecha_inicio=date.today(),
                 fecha_vencimiento=date.today() + timedelta(days=365),
-                premio_total=15000.0,
+                premio_total=Decimal('15000.0'),
                 estado="vigente"
             )
             db.add(pol3)
         
-        # Crear actividades
-        if not db.query(ActividadComercial).filter(
+        # Crear actividades (usando nombres correctos)
+        act_existente = db.query(ActividadComercial).filter(
             ActividadComercial.cliente_id == cliente.id
-        ).first():
+        ).first()
+        
+        if not act_existente:
             act1 = ActividadComercial(
                 cliente_id=cliente.id,
-                usuario_id=cliente_usuario.id,
-                tipo="llamado_nuevo",
-                puntos=5.9,
+                agente_id=cliente_usuario.id,
+                tipo_actividad="llamado_nuevo",
+                puntos_otorgados=Decimal('5.9'),
                 descripcion="Primer contacto con cliente",
-                fecha=datetime.now() - timedelta(days=10)
+                fecha_actividad=datetime.now() - timedelta(days=10)
             )
             db.add(act1)
             
             act2 = ActividadComercial(
                 cliente_id=cliente.id,
-                usuario_id=cliente_usuario.id,
-                tipo="cotizado",
-                puntos=13,
+                agente_id=cliente_usuario.id,
+                tipo_actividad="cotizado",
+                puntos_otorgados=Decimal('13'),
                 descripcion="Cotización de seguro auto",
-                fecha=datetime.now() - timedelta(days=5)
+                fecha_actividad=datetime.now() - timedelta(days=5)
             )
             db.add(act2)
         
