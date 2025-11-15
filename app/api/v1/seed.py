@@ -8,7 +8,7 @@ from app.models.cliente import Cliente
 from app.models.poliza import Poliza
 from app.models.vehiculo import Vehiculo
 from app.models.actividad import ActividadComercial
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 router = APIRouter(tags=["seed"])
 
@@ -59,7 +59,7 @@ def seed_data(secret: str):
         else:
             cliente = cliente_existente
         
-        # Crear vehículos (usando "dominio" no "patente")
+        # Crear vehículos
         vehiculos = []
         if not db.query(Vehiculo).filter(Vehiculo.dominio == "ABC123").first():
             veh1 = Vehiculo(
@@ -74,6 +74,10 @@ def seed_data(secret: str):
                 numero_chasis="JTDBT123400012345"
             )
             db.add(veh1)
+            db.flush()
+            vehiculos.append(veh1)
+        else:
+            veh1 = db.query(Vehiculo).filter(Vehiculo.dominio == "ABC123").first()
             vehiculos.append(veh1)
         
         if not db.query(Vehiculo).filter(Vehiculo.dominio == "XYZ789").first():
@@ -89,22 +93,24 @@ def seed_data(secret: str):
                 numero_chasis="1FADP3K20HL123456"
             )
             db.add(veh2)
+            db.flush()
             vehiculos.append(veh2)
+        else:
+            veh2 = db.query(Vehiculo).filter(Vehiculo.dominio == "XYZ789").first()
+
         
-        db.flush()
-        
-        # Crear pólizas
+        # Crear pólizas (usando nombres correctos)
         if not db.query(Poliza).filter(Poliza.numero_poliza == "POL-2024-001").first():
             pol1 = Poliza(
                 cliente_id=cliente.id,
                 vehiculo_id=vehiculos[0].id if vehiculos else None,
                 numero_poliza="POL-2024-001",
-                tipo_seguro="Auto",
                 compania="San Cristóbal",
-                vigencia_desde=datetime.now(),
-                vigencia_hasta=datetime.now() + timedelta(days=365),
-                premio=25000.0,
-                cobertura="Terceros Completo",
+                ramo="automotor",
+                tipo_cobertura="terceros_completo",
+                fecha_inicio=date.today(),
+                fecha_vencimiento=date.today() + timedelta(days=365),
+                premio_total=25000.0,
                 estado="vigente"
             )
             db.add(pol1)
@@ -114,12 +120,12 @@ def seed_data(secret: str):
                 cliente_id=cliente.id,
                 vehiculo_id=vehiculos[1].id if len(vehiculos) > 1 else None,
                 numero_poliza="POL-2024-002",
-                tipo_seguro="Auto",
                 compania="Mapfre",
-                vigencia_desde=datetime.now(),
-                vigencia_hasta=datetime.now() + timedelta(days=365),
-                premio=30000.0,
-                cobertura="Todo Riesgo",
+                ramo="automotor",
+                tipo_cobertura="todo_riesgo",
+                fecha_inicio=date.today(),
+                fecha_vencimiento=date.today() + timedelta(days=365),
+                premio_total=30000.0,
                 estado="vigente"
             )
             db.add(pol2)
@@ -128,36 +134,39 @@ def seed_data(secret: str):
             pol3 = Poliza(
                 cliente_id=cliente.id,
                 numero_poliza="POL-2024-003",
-                tipo_seguro="Hogar",
                 compania="Nación Seguros",
-                vigencia_desde=datetime.now(),
-                vigencia_hasta=datetime.now() + timedelta(days=365),
-                premio=15000.0,
-                cobertura="Incendio y Robo",
+                ramo="hogar",
+                tipo_cobertura="incendio_robo",
+                fecha_inicio=date.today(),
+                fecha_vencimiento=date.today() + timedelta(days=365),
+                premio_total=15000.0,
                 estado="vigente"
             )
             db.add(pol3)
         
         # Crear actividades
-        act1 = ActividadComercial(
-            cliente_id=cliente.id,
-            usuario_id=cliente_usuario.id,
-            tipo="llamado_nuevo",
-            puntos=5.9,
-            descripcion="Primer contacto con cliente",
-            fecha=datetime.now() - timedelta(days=10)
-        )
-        db.add(act1)
-        
-        act2 = ActividadComercial(
-            cliente_id=cliente.id,
-            usuario_id=cliente_usuario.id,
-            tipo="cotizado",
-            puntos=13,
-            descripcion="Cotización de seguro auto",
-            fecha=datetime.now() - timedelta(days=5)
-        )
-        db.add(act2)
+        if not db.query(ActividadComercial).filter(
+            ActividadComercial.cliente_id == cliente.id
+        ).first():
+            act1 = ActividadComercial(
+                cliente_id=cliente.id,
+                usuario_id=cliente_usuario.id,
+                tipo="llamado_nuevo",
+                puntos=5.9,
+                descripcion="Primer contacto con cliente",
+                fecha=datetime.now() - timedelta(days=10)
+            )
+            db.add(act1)
+            
+            act2 = ActividadComercial(
+                cliente_id=cliente.id,
+                usuario_id=cliente_usuario.id,
+                tipo="cotizado",
+                puntos=13,
+                descripcion="Cotización de seguro auto",
+                fecha=datetime.now() - timedelta(days=5)
+            )
+            db.add(act2)
         
         db.commit()
         
