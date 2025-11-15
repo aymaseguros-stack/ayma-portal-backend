@@ -8,10 +8,8 @@ from .vehiculos import router as vehiculos_router
 from .dashboard import router as dashboard_router
 from .seed import router as seed_router
 
-# Router principal para v1
 api_router = APIRouter(prefix="/v1")
 
-# Incluir routers SIN duplicar tags
 api_router.include_router(auth_router, prefix="/auth", tags=["Autenticación"])
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(polizas_router, prefix="/polizas", tags=["Pólizas"])

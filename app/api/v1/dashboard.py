@@ -21,7 +21,6 @@ def obtener_dashboard(
     """
     Obtener resumen completo del dashboard para el cliente
     """
-    # Información del cliente (usando nombres correctos)
     cliente_info = {
         "id": cliente.id,
         "nombre_completo": f"{cliente.nombre} {cliente.apellido or ''}".strip(),
@@ -31,7 +30,6 @@ def obtener_dashboard(
         "score_comercial": cliente.scoring_comercial or 0
     }
     
-    # Contar pólizas
     total_polizas = db.query(Poliza).filter(
         Poliza.cliente_id == cliente.id
     ).count()
@@ -41,12 +39,10 @@ def obtener_dashboard(
         Poliza.estado == "vigente"
     ).count()
     
-    # Contar vehículos
     total_vehiculos = db.query(Vehiculo).filter(
         Vehiculo.cliente_id == cliente.id
     ).count()
     
-    # Próximas renovaciones (pólizas que vencen en los próximos 60 días)
     fecha_limite = datetime.now().date() + timedelta(days=60)
     proximas_renovaciones = db.query(Poliza).filter(
         Poliza.cliente_id == cliente.id,
@@ -66,7 +62,6 @@ def obtener_dashboard(
         for p in proximas_renovaciones
     ]
     
-    # Última actividad
     ultima_actividad = db.query(ActividadComercial).filter(
         ActividadComercial.cliente_id == cliente.id
     ).order_by(ActividadComercial.created_at.desc()).first()
@@ -87,9 +82,6 @@ def obtener_scoring(
     cliente: Cliente = Depends(get_current_cliente),
     db: Session = Depends(get_db)
 ):
-    """
-    Obtener resumen de scoring del cliente
-    """
     score_data = scoring_service.obtener_score_cliente(db, cliente.id)
     
     if not score_data:
@@ -118,9 +110,6 @@ def obtener_actividades_recientes(
     db: Session = Depends(get_db),
     limit: int = 20
 ):
-    """
-    Obtener actividades recientes del cliente
-    """
     actividades = scoring_service.obtener_actividades_cliente(
         db,
         cliente.id,
