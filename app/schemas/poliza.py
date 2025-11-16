@@ -72,9 +72,16 @@ class PolizaResumen(BaseModel):
     compania: str
     tipo_cobertura: str
     fecha_vencimiento: date
+    premio_total: Decimal
     premio_mensual: Optional[Decimal] = None
     estado: str
     dias_para_vencimiento: Optional[int] = None
+    # Datos del vehículo asegurado
+    vehiculo_dominio: Optional[str] = None
+    vehiculo_descripcion: Optional[str] = None
+    # Datos del titular
+    titular_nombre: Optional[str] = None
+    titular_apellido: Optional[str] = None
     
     class Config:
         from_attributes = True

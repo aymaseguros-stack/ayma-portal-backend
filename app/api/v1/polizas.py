@@ -19,11 +19,39 @@ def listar_polizas_cliente(
     db: Session = Depends(get_db)
 ):
     """
-    Listar todas las pólizas del cliente autenticado
+    Listar todas las pólizas del cliente autenticado con info de vehículo
     """
+    from app.models import Vehiculo
+    
     polizas = db.query(Poliza).filter(
         Poliza.cliente_id == cliente.id
     ).order_by(Poliza.fecha_vencimiento.desc()).all()
+    
+    # Enriquecer con datos de vehículo y cliente
+    resultado = []
+    for poliza in polizas:
+        poliza_dict = {
+            "id": poliza.id,
+            "numero_poliza": poliza.numero_poliza,
+            "compania": poliza.compania,
+            "tipo_cobertura": poliza.tipo_cobertura,
+            "fecha_vencimiento": poliza.fecha_vencimiento,
+            "premio_total": poliza.premio_total,
+            "premio_mensual": poliza.premio_mensual,
+            "estado": poliza.estado,
+            "dias_para_vencimiento": poliza.dias_para_vencimiento,
+            "titular_nombre": cliente.nombre,
+            "titular_apellido": cliente.apellido,
+        }
+        
+        # Agregar datos del vehículo si existe
+        if poliza.vehiculo_id:
+            vehiculo = db.query(Vehiculo).filter(Vehiculo.id == poliza.vehiculo_id).first()
+            if vehiculo:
+                poliza_dict["vehiculo_dominio"] = vehiculo.dominio
+                poliza_dict["vehiculo_descripcion"] = f"{vehiculo.marca} {vehiculo.modelo} {vehiculo.anio}"
+        
+        resultado.append(PolizaResumen(**poliza_dict))
     
     # Registrar actividad
     scoring_service.registrar_actividad(
@@ -33,7 +61,8 @@ def listar_polizas_cliente(
         descripcion="Listado de pólizas"
     )
     
-    return polizas
+    return resultado
+
 
 
 @router.get("/{poliza_id}", response_model=PolizaResponse)
